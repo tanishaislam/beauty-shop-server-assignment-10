@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -16,7 +16,7 @@ const users = [
   },
   {
       "id": 2,
-      "image": "https://i.ibb.co/SrprfWZ/Mc-Donald-s-logo-svg.png",
+      "image": "https://i.ibb.co/233rvMc/353c0bd5-bebd-4c3b-9ded-12861ad4238c.jpg",
       "brandName": "McDonald's"
   },
   {
@@ -70,10 +70,40 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result)
     })
+    app.put('/products/:id', async(req, res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const updatedProduct = req.body;
+        const product = {
+        $set: {
+          category: updatedProduct.category,
+          imge: updatedProduct.imge,
+          price: updatedProduct.price,
+          description: updatedProduct.description,
+          rating: updatedProduct.rating
+        }
+      }
+      const result = await productCollection.updateOne(filter, product, option);
+      res.send(result);
+    })
+    app.get('/products/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await productCollection.findOne(query);
+      res.send(result)
+    })
     app.post('/products', async(req, res)=>{
       const newProducts = req.body;
       console.log(newProducts)
       const result = await productCollection.insertOne(newProducts);
+      res.send(result)
+    })
+
+    app.get('/products/:brand', async(req, res)=>{
+      const id = req.params.brand;
+      const query = {brand: id};
+      const result = productCollection.findOne(query)
       res.send(result)
     })
     // Send a ping to confirm a successful connection
